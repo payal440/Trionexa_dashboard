@@ -4,3 +4,4 @@ node_modules
 .claude\skills
 .windsurf\skills
 skiils-lock.json
+.env
