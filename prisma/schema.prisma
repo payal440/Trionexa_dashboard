@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Agency {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  users     User[]
+  clients   Client[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  agencyId  String
+  agency    Agency   @relation(fields: [agencyId], references: [id])
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(SPECIALIST)
+  projects  Project[]  @relation("CreatedBy")
+  tasks     Task[]
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  SPECIALIST
+}
+
+model Client {
+  id        String    @id @default(uuid())
+  agencyId  String
+  agency    Agency    @relation(fields: [agencyId], references: [id])
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  notes     String?
+  projects  Project[]
+  invoices  Invoice[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id])
+  createdById String
+  createdBy   User      @relation("CreatedBy", fields: [createdById], references: [id])
+  name        String
+  description String?
+  status      ProjectStatus @default(PLANNING)
+  budget      Decimal?
+  startDate   DateTime?
+  endDate     DateTime?
+  tasks       Task[]
+  campaigns   Campaign[]
+  files       File[]
+  messages    Message[]
+  createdAt   DateTime  @default(now())
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  REVIEW
+  ON_HOLD
+  COMPLETED
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id])
+  assignedToId String?
+  assignedTo  User?      @relation(fields: [assignedToId], references: [id])
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Campaign {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  name      String
+  channel   String   // SEO, Social, Google Ads, Meta Ads
+  budget    Decimal?
+  spend     Decimal? @default(0)
+  leads     Lead[]
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id         String   @id @default(uuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  name       String
+  email      String?
+  phone      String?
+  stage      LeadStage @default(NEW)
+  createdAt  DateTime @default(now())
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  WON
+  LOST
+}
+
+model Invoice {
+  id        String   @id @default(uuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  amount    Decimal
+  status    InvoiceStatus @default(UNPAID)
+  dueDate   DateTime
+  createdAt DateTime @default(now())
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  OVERDUE
+}
+
+model File {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  url       String
+  name      String
+  uploadedAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+}
