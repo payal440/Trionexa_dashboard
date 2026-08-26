@@ -2,9 +2,9 @@
 import {
     registerUser as registerUserService,
     loginUser as loginUserService,
+    refreshAcessToken as refreshAcessTokenService
 } from "./auth.services.js";
 
-import { registerSchema, loginSchema } from "./auth.validation.js";
 
 export const registerUser = async (req, res,next) => {
     try{
@@ -32,7 +32,21 @@ export const loginUser = async (req, res,next) => {
         next(error);
     }
 }
+export const refreshAcessToken = async (req, res,next) => {
+    try{
+        const { refreshToken } = req.body;
+        const result = await refreshAcessTokenService(refreshToken);
+        return res.status(200).json({
+            success: true,
+            message: "Access token refreshed successfully",
+            data: result,
+        });
+    }catch(error){
+        next(error);
+    }
+}
 export default {
     registerUser,
-    loginUser
+    loginUser,
+    refreshAcessToken
 }

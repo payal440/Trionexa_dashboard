@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import prisma from "../../../config/db.js";
-import { generateToken } from "./auth.utils.js";
+import { generateAcessToken , generateRefreshToken } from "./auth.utils.js";
+ 
 
 export const registerUser = async ({
     agencyName,
@@ -31,7 +33,7 @@ export const registerUser = async ({
                 name,
                 email,
                 password: hashedPassword,
-                role: "SPECIALIST",
+                role: "ADMIN",
             },
         });
         return {
@@ -40,10 +42,12 @@ export const registerUser = async ({
         }
     });
 
-    const token = generateToken(result.newUser);
+    const accessToken = generateAcessToken(result.newUser);
+    const refreshToken = generateRefreshToken(result.newUser);
 
     return {
-        token,
+        accessToken,
+        refreshToken,
         user: {
             id: result.newUser.id,
             name: result.newUser.name,
@@ -76,9 +80,11 @@ export const registerUser = async ({
             throw new Error("Invalid email or password");
         }
 
-        const token = generateToken(user);
+        const accessToken = generateAcessToken(user);
+        const refreshToken = generateRefreshToken(user);
         return {
-            token,
+            accessToken,
+            refreshToken,
             user: {
                 id: user.id,
                 name: user.name,
@@ -92,3 +98,25 @@ export const registerUser = async ({
             },
         };
     };
+    export const refreshAcessToken = async (refreshToken) => {
+        if(!refreshToken){
+            throw new Error("Refresh token is required");
+        }
+        try{
+            const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+            const user = await prisma.user.findUnique({
+                where: {
+                    id: decoded.userId,
+                },
+            });
+            if(!user){
+                throw new Error("User not found");
+            }
+            const accessToken = generateAcessToken(user);
+            return {
+                accessToken
+            };
+        }catch(err){
+            throw new Error("Invalid refresh token");
+        };
+    }
