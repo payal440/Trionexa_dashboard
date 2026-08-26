@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../../../config/db.js";
 import { generateAcessToken , generateRefreshToken } from "./auth.utils.js";
+
+const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.jwt_refresh_secret;
  
 
 export const registerUser = async ({
@@ -103,7 +105,7 @@ export const registerUser = async ({
             throw new Error("Refresh token is required");
         }
         try{
-            const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+            const decoded = jwt.verify(refreshToken, refreshSecret);
             const user = await prisma.user.findUnique({
                 where: {
                     id: decoded.userId,
@@ -120,3 +122,42 @@ export const registerUser = async ({
             throw new Error("Invalid refresh token");
         };
     }
+
+export const getAllUsers = async () => {
+    return prisma.user.findMany({
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            agencyId: true,
+            createdAt: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+};
+
+export const getProfile = async (user) => {
+    const profile = await prisma.user.findUnique({
+        where: {
+            id: user.userId,
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            agencyId: true,
+            createdAt: true,
+        },
+    });
+    return profile;
+
+}
+export const logoutUser = async () => {
+    // Invalidate the refresh token in your database or token store
+    // For example, you can delete the refresh token associated with the user
+    return true;
+};

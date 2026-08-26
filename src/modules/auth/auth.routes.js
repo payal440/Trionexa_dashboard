@@ -1,11 +1,16 @@
 import express from "express";
-import { registerUser, loginUser , refreshAcessToken} from "./auth.controller.js";
+import { registerUser, loginUser , refreshAcessToken, getAllUsers,getProfile, logoutUser} from "./auth.controller.js";
 import { registerSchema, loginSchema, validate } from "./auth.validation.js";
+import authMiddleware from "../../../middlewares/auth.middleware.js";
+import authorizeRoles from "../../../middlewares/role.middleware.js";
 
 const router = express.Router();
 
 router.post("/register", validate(registerSchema), registerUser);
 router.post("/login", validate(loginSchema), loginUser);
 router.post("/refresh", refreshAcessToken);
+router.get("/profile", authMiddleware, getProfile);
+router.get("/users", authMiddleware, authorizeRoles("ADMIN"), getAllUsers);
+router.post("/logout", authMiddleware, authorizeRoles("ADMIN"), logoutUser);
 
 export default router;

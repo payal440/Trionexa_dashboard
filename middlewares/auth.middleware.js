@@ -37,6 +37,13 @@ const authMiddleware = (req, res, next) => {
     next();
 
   } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Access token expired. Use the refresh token to get a new access token.",
+      });
+    }
+
     console.error("Auth middleware error:", error);
 
     return res.status(401).json({

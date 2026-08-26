@@ -2,7 +2,10 @@
 import {
     registerUser as registerUserService,
     loginUser as loginUserService,
-    refreshAcessToken as refreshAcessTokenService
+    refreshAcessToken as refreshAcessTokenService,
+    getAllUsers as getAllUsersService,
+    getProfile as getProfileService,
+    logoutUser as logoutUserService
 } from "./auth.services.js";
 
 
@@ -45,8 +48,46 @@ export const refreshAcessToken = async (req, res,next) => {
         next(error);
     }
 }
+export const getAllUsers = async (req, res,next) => {
+    try{
+        const users = await getAllUsersService();
+        return res.status(200).json({
+            success: true,
+            message: "Users fetched successfully",
+            data: users,
+        });
+    }catch(error){
+        next(error);
+    }
+}
+export const getProfile = async (req, res,next) => {
+    try{
+        const user = await getProfileService(req.user);
+        return res.status(200).json({
+            success: true,
+            message: "Profile fetched successfully",
+            data: user,
+        });
+    }catch(error){
+        next(error);
+    }
+}
+export const logoutUser = async (req, res,next) => {
+    try{
+        await logoutUserService(req.user.id);
+        return res.status(200).json({
+            success: true,
+            message: "User logged out successfully",
+        });
+    }catch(error){
+        next(error);
+    }
+}
 export default {
     registerUser,
     loginUser,
-    refreshAcessToken
+    refreshAcessToken,
+    getAllUsers,
+    getProfile,
+    logoutUser
 }
