@@ -1,4 +1,3 @@
-import { success } from "zod";
 import { createUser } from "./user.services.js";
 
 export const createUserController = async (req, res, next) => {

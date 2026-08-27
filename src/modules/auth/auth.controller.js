@@ -74,7 +74,7 @@ export const getProfile = async (req, res,next) => {
 }
 export const logoutUser = async (req, res,next) => {
     try{
-        await logoutUserService(req.user.id);
+        await logoutUserService(req.user.userId);
         return res.status(200).json({
             success: true,
             message: "User logged out successfully",
